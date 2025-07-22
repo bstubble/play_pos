@@ -1,2 +1,3 @@
 # play_pos
-POS for imaginary stores or restaurants
+
+A simple Point of Sale page created with ChatGPT to enhance playtime for make believe stores and restarants.
