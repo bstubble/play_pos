@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+    2025-07-22
+    This was created with ChatGPT to enchance playtime 
+    for make believe stores and restaurants.
+-->
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My POS System</title>. <!-- Change the title to whatever -->
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 1rem;
+        }
+
+        button {
+            margin: 0.25rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            background-color: #90cdf4;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #63b3ed;
+        }
+
+        #change.red {
+            color: red;
+            font-weight: bold;
+        }
+
+        #change.green {
+            color: green;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            margin: 0.5rem 0;
+            padding: 0.3rem;
+            font-size: 1rem;
+            width: 6rem;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome to My Store!</h1> <!-- Change the title to whatever -->
+
+    <div id="products"></div>
+    <br><br>
+    <h2>Cart</h2>
+    <ul id="cart"></ul>
+    <p>Total: $<span id="total">0.00</span></p>
+
+    <div>
+        <label for="amount-received">Amount Received: $</label>
+        <input type="number" id="amount-received" step="0.01" />
+        <button onclick="calculateChange()">Calculate Change</button>
+        <p>Change: $<span id="change">0.00</span></p>
+    </div>
+
+    <button onclick="clearCart()">Clear Cart</button>
+    <button onclick="checkout()">Complete Checkout</button>
+    <br><br><br><br>
+    <hr />
+    <h2>Admin: Update Products</h2>
+    <form id="admin-form">
+        <input type="text" id="item-name" placeholder="Item name" required />
+        <input type="number" id="item-price" placeholder="Price" step="0.01" required />
+        <button type="submit">Add/Update Item</button>
+    </form>
+    <ul id="admin-list"></ul>
+    <br><br>
+    <hr />
+    <h2>Receipt Log:</h2>
+    <ul id="receipts"></ul>
+    <br><br>
+    <hr />
+    <h2>Admin Tools</h2>
+    <button onclick="clearReceipts()">Clear Receipt Log</button>
+
+    <script>
+        // this is the "database" that contains the items in the store
+        let products = [
+            { name: "Cheeseburger", price: 3.50 },
+            { name: "Hamburger", price: 3.00 },
+            { name: "Chicken Sandwich", price: 3.75 },
+            { name: "Cookie", price: 0.75 },
+            { name: "French Fries", price: 2.75 },
+
+            { name: "Pie", price: 2.25 },
+            { name: "Apple", price: 1.00 },
+            { name: "Cookie", price: 0.75 },
+
+            { name: "Pepsi", price: 1.00 },
+            { name: "Coke", price: 1.00 },
+            { name: "Sprite", price: 1.00 },
+            { name: "Tea", price: 1.00 },
+            { name: "Juice", price: 1.50 },
+        ];
+        let cart = [];
+        let receipts = [];
+        let receiptCounter = 1;
+
+        function generateId() {
+            return receiptCounter.toString().padStart(4, '0');
+        }
+
+        function loadProducts() {
+            // no localStorage loading, so empty
+        }
+
+        function saveProducts() {
+            // no localStorage saving, so empty
+        }
+
+        function displayProducts() {
+            const container = document.getElementById('products');
+            container.innerHTML = '';
+            products.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.innerText = `${item.name} - $${item.price.toFixed(2)}`;
+                btn.onclick = () => addToCart(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function displayCart() {
+            const cartList = document.getElementById('cart');
+            const totalEl = document.getElementById('total');
+            cartList.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+                cartList.appendChild(li);
+                total += item.price;
+            });
+            totalEl.innerText = total.toFixed(2);
+        }
+
+        function addToCart(index) {
+            cart.push(products[index]);
+            displayCart();
+            clearChange();
+        }
+
+        function clearCart() {
+            cart = [];
+            displayCart();
+            clearChange();
+        }
+
+        function checkout() {
+            if (cart.length === 0) return;
+            const amountReceived = parseFloat(document.getElementById('amount-received').value);
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const change = amountReceived - total;
+            const timestamp = new Date().toISOString().replace('T', ' ').split('.')[0].replace(/-/g, '/');
+            const id = generateId();
+
+            let itemsText = cart.map(item => `  • ${item.name} - $${item.price.toFixed(2)}`).join('\n');
+
+            const receiptText = `[ID: ${id}] ${timestamp}\nItems:\n${itemsText}\nTotal: $${total.toFixed(2)}, Received: $${amountReceived.toFixed(2)}, Change: $${(change >= 0 ? change.toFixed(2) : '0.00')}`;
+
+            receipts.push(receiptText);
+            receiptCounter++;
+            displayReceipts();
+            alert("Thanks for shopping!");
+            clearCart();
+        }
+
+        function calculateChange() {
+            const amountReceived = parseFloat(document.getElementById('amount-received').value);
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const change = amountReceived - total;
+            const changeDisplay = document.getElementById('change');
+            if (isNaN(change)) {
+                changeDisplay.innerText = "0.00";
+                changeDisplay.className = '';
+                return;
+            }
+            changeDisplay.innerText = (change >= 0 ? change.toFixed(2) : "0.00");
+            changeDisplay.className = (change >= 0 ? 'green' : 'red');
+        }
+
+        function clearChange() {
+            document.getElementById('amount-received').value = '';
+            const changeDisplay = document.getElementById('change');
+            changeDisplay.innerText = '0.00';
+            changeDisplay.className = '';
+        }
+
+        function displayAdmin() {
+            const list = document.getElementById('admin-list');
+            list.innerHTML = '';
+            products.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+                list.appendChild(li);
+            });
+        }
+
+        function displayReceipts() {
+            const list = document.getElementById('receipts');
+            list.innerHTML = '';
+            receipts.slice().reverse().forEach(r => {
+                const li = document.createElement('li');
+                const pre = document.createElement('pre');
+                pre.textContent = r;
+                li.appendChild(pre);
+                list.appendChild(li);
+            });
+        }
+
+        function clearReceipts() {
+            receipts = [];
+            receiptCounter = 1;
+            displayReceipts();
+        }
+
+        document.getElementById('admin-form').onsubmit = function (e) {
+            e.preventDefault();
+            const name = document.getElementById('item-name').value.trim();
+            const price = parseFloat(document.getElementById('item-price').value);
+            const existing = products.find(p => p.name.toLowerCase() === name.toLowerCase());
+            if (existing) {
+                existing.price = price;
+            } else {
+                products.push({ name, price });
+            }
+            displayProducts();
+            displayAdmin();
+            this.reset();
+        };
+
+        loadProducts();
+        displayProducts();
+        displayCart();
+        displayAdmin();
+        displayReceipts();
+    </script>
+</body>
+
+</html>
