@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My POS System</title>. <!-- Change the title to whatever -->
+    <title>My POS System</title>
     <style>
         body {
             font-family: sans-serif;
@@ -50,11 +50,21 @@
             margin: 0;
             white-space: pre-wrap;
         }
+
+        .remove-btn {
+            background-color: #f87171;
+            color: white;
+            margin-left: 0.5rem;
+        }
+
+        .remove-btn:hover {
+            background-color: #dc2626;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Welcome to My Store!</h1> <!-- Change the title to whatever -->
+    <h1>Welcome to My Store!</h1>
 
     <div id="products"></div>
     <br><br>
@@ -90,18 +100,14 @@
     <button onclick="clearReceipts()">Clear Receipt Log</button>
 
     <script>
-        // this is the "database" that contains the items in the store
         let products = [
             { name: "Cheeseburger", price: 3.50 },
             { name: "Hamburger", price: 3.00 },
             { name: "Chicken Sandwich", price: 3.75 },
             { name: "Cookie", price: 0.75 },
             { name: "French Fries", price: 2.75 },
-
             { name: "Pie", price: 2.25 },
             { name: "Apple", price: 1.00 },
-            { name: "Cookie", price: 0.75 },
-
             { name: "Pepsi", price: 1.00 },
             { name: "Coke", price: 1.00 },
             { name: "Sprite", price: 1.00 },
@@ -114,14 +120,6 @@
 
         function generateId() {
             return receiptCounter.toString().padStart(4, '0');
-        }
-
-        function loadProducts() {
-            // no localStorage loading, so empty
-        }
-
-        function saveProducts() {
-            // no localStorage saving, so empty
         }
 
         function displayProducts() {
@@ -170,7 +168,6 @@
             const id = generateId();
 
             let itemsText = cart.map(item => `  • ${item.name} - $${item.price.toFixed(2)}`).join('\n');
-
             const receiptText = `[ID: ${id}] ${timestamp}\nItems:\n${itemsText}\nTotal: $${total.toFixed(2)}, Received: $${amountReceived.toFixed(2)}, Change: $${(change >= 0 ? change.toFixed(2) : '0.00')}`;
 
             receipts.push(receiptText);
@@ -204,11 +201,24 @@
         function displayAdmin() {
             const list = document.getElementById('admin-list');
             list.innerHTML = '';
-            products.forEach(item => {
+            products.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = '🗑 Remove';
+                removeBtn.onclick = () => removeProduct(index);
+                li.appendChild(removeBtn);
                 list.appendChild(li);
             });
+        }
+
+        function removeProduct(index) {
+            if (confirm(`Remove "${products[index].name}" from store items?`)) {
+                products.splice(index, 1);
+                displayProducts();
+                displayAdmin();
+            }
         }
 
         function displayReceipts() {
@@ -244,12 +254,10 @@
             this.reset();
         };
 
-        loadProducts();
         displayProducts();
         displayCart();
         displayAdmin();
         displayReceipts();
     </script>
 </body>
-
 </html>
